@@ -76,7 +76,7 @@ jobs:
           echo "Username: $BETFAIR_USERNAME"
           echo "App Key length: ${#BETFAIR_APP_KEY}"
           echo "Password length: ${#BETFAIR_PASSWORD}"
-          python scripts/fetch_betfair_odds.py --date $TARGET
+          python scripts/fetch_cloud_odds.py --date $TARGET
 
       - name: Run V12 Tipster
         if: github.event.inputs.run_tipster != 'No - just scrape racecards & odds'
