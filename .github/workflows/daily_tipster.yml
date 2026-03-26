@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: '0 21 * * *'
   workflow_dispatch:
+    inputs:
+      target_date:
+        description: 'Date to run for (YYYY-MM-DD). Leave blank for tomorrow.'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   run-pipeline:
@@ -31,15 +37,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r scripts/deploy/requirements_pipeline.txt
 
+      - name: Determine target date
+        id: date
+        run: |
+          if [ -n "${{ github.event.inputs.target_date }}" ]; then
+            TARGET="${{ github.event.inputs.target_date }}"
+            echo "Using manually specified date: $TARGET"
+          else
+            TARGET=$(date -d "tomorrow" +%Y-%m-%d)
+            echo "Using default (tomorrow): $TARGET"
+          fi
+          echo "target=$TARGET" >> $GITHUB_OUTPUT
+
       - name: Run Racecards Scraper
         run: |
-          # Grabs tomorrow's date dynamically (UTC)
-          TOMORROW=$(date -d "tomorrow" +%Y-%m-%d)
-          echo "Scraping racecards for $TOMORROW"
-          
-          # Since the original script might ask for input or use today's date, 
-          # we pass the date directly. We will create a small runner script for it.
-          python scripts/racecards_runner.py $TOMORROW
+          TARGET="${{ steps.date.outputs.target }}"
+          echo "Scraping racecards for $TARGET"
+          python scripts/racecards_runner.py $TARGET
 
       - name: Fetch Betfair Odds
         env:
@@ -47,21 +61,23 @@ jobs:
           BETFAIR_PASSWORD: ${{ secrets.BETFAIR_PASSWORD }}
           BETFAIR_APP_KEY: ${{ secrets.BETFAIR_APP_KEY }}
         run: |
-          TOMORROW=$(date -d "tomorrow" +%Y-%m-%d)
-          echo "Fetching Betfair odds for $TOMORROW"
-          python scripts/fetch_betfair_odds.py --date $TOMORROW || echo "Betfair odds fetch failed (non-fatal), continuing without odds..."
+          TARGET="${{ steps.date.outputs.target }}"
+          echo "Fetching Betfair odds for $TARGET"
+          python scripts/fetch_betfair_odds.py --date $TARGET || echo "Betfair odds fetch failed (non-fatal), continuing without odds..."
 
       - name: Run Tipster Application
         run: |
-          TOMORROW=$(date -d "tomorrow" +%Y-%m-%d)
-          echo "Generating Tips for $TOMORROW"
+          TARGET="${{ steps.date.outputs.target }}"
+          echo "Generating Tips for $TARGET"
           
           # Add the scripts directory to PYTHONPATH so utils imports work
           export PYTHONPATH=$PYTHONPATH:$(pwd)/scripts
-          python scripts/tipster_v12_premium.py -Date $TOMORROW
+          python scripts/tipster_v12_premium.py -Date $TARGET
 
       - name: Commit and Push Changes
         run: |
+          TARGET="${{ steps.date.outputs.target }}"
+          
           # Set git config
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
@@ -74,4 +90,4 @@ jobs:
           done
           
           # Commit only if there are staged changes
-          git diff --staged --quiet || (git commit -m "Auto-update tipster results & HTML for $(date -d 'tomorrow' +%Y-%m-%d)" && git push)
+          git diff --staged --quiet || (git commit -m "Auto-update tipster results & HTML for $TARGET" && git push)
