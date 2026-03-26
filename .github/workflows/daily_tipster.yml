@@ -1,9 +1,6 @@
 name: Daily Tipster Pipeline
 
 on:
-  push:
-    branches:
-      - main
   schedule:
     - cron: '0 21 * * *'
   workflow_dispatch:
@@ -59,8 +56,12 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           
-          # Add all new racecards, odds, and docs (HTML)
-          git add racecards/ live_odds/ docs/ Grok_V12_Tips/
+          # Add directories only if they exist
+          for dir in racecards live_odds docs Grok_V12_Tips; do
+            if [ -d "$dir" ]; then
+              git add "$dir/" || true
+            fi
+          done
           
-          # Commit only if there are changes
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update tipster results & HTML for $(date -d 'tomorrow' +%Y-%m-%d)" && git push)
+          # Commit only if there are staged changes
+          git diff --staged --quiet || (git commit -m "Auto-update tipster results & HTML for $(date -d 'tomorrow' +%Y-%m-%d)" && git push)
