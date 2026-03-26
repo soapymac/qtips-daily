@@ -8,3 +8,5 @@ orjson
 requests
 joblib
 pytz
+betfairlightweight
+python-dotenv

@@ -41,6 +41,16 @@ jobs:
           # we pass the date directly. We will create a small runner script for it.
           python scripts/racecards_runner.py $TOMORROW
 
+      - name: Fetch Betfair Odds
+        env:
+          BETFAIR_USERNAME: ${{ secrets.BETFAIR_USERNAME }}
+          BETFAIR_PASSWORD: ${{ secrets.BETFAIR_PASSWORD }}
+          BETFAIR_APP_KEY: ${{ secrets.BETFAIR_APP_KEY }}
+        run: |
+          TOMORROW=$(date -d "tomorrow" +%Y-%m-%d)
+          echo "Fetching Betfair odds for $TOMORROW"
+          python scripts/fetch_betfair_odds.py --date $TOMORROW || echo "Betfair odds fetch failed (non-fatal), continuing without odds..."
+
       - name: Run Tipster Application
         run: |
           TOMORROW=$(date -d "tomorrow" +%Y-%m-%d)
