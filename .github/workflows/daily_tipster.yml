@@ -1,0 +1,66 @@
+name: Daily Tipster Pipeline
+
+on:
+  schedule:
+    # Runs at 21:00 (9:00 PM) UTC every day
+    - cron: '0 21 * * *'
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    
+    # Grant permissions needed to push commits back to the repo
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch all history so push works nicely
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip' # caching pip dependencies
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/deploy/requirements_pipeline.txt
+
+      - name: Run Racecards Scraper
+        run: |
+          # Grabs tomorrow's date dynamically (UTC)
+          TOMORROW=$(date -d "tomorrow" +%Y-%m-%d)
+          echo "Scraping racecards for $TOMORROW"
+          
+          # Since the original script might ask for input or use today's date, 
+          # we pass the date directly. We will create a small runner script for it.
+          python scripts/racecards_runner.py $TOMORROW
+
+      - name: Run Tipster Application
+        run: |
+          TOMORROW=$(date -d "tomorrow" +%Y-%m-%d)
+          echo "Generating Tips for $TOMORROW"
+          
+          # Add the scripts directory to PYTHONPATH so utils imports work
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/scripts
+          python scripts/tipster_v12_premium.py -Date $TOMORROW
+
+      - name: Commit and Push Changes
+        run: |
+          # Set git config
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Add all new racecards, odds, and docs (HTML)
+          git add racecards/ live_odds/ docs/ Grok_V12_Tips/
+          
+          # Commit only if there are changes
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update tipster results & HTML for $(date -d 'tomorrow' +%Y-%m-%d)" && git push)
