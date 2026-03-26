@@ -33,8 +33,14 @@ class Settings:
         return fields
 
     def load_toml(self) -> Mapping[str, Any] | None:
-        default_path = '../settings/default_settings.toml'
-        user_path = '../settings/user_settings.toml'
+        # Get the directory of the current file (settings.py)
+        # Structure: rpscrape/scripts/utils/settings.py
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # Go up two levels to reach 'rpscrape' root (containing scripts/ and settings/)
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        
+        default_path = os.path.join(project_root, 'settings', 'default_settings.toml')
+        user_path = os.path.join(project_root, 'settings', 'user_settings.toml')
 
         path = user_path if os.path.isfile(user_path) else default_path
         if path == default_path and not os.path.isfile(default_path):

@@ -1,4 +1,5 @@
 from random import choice, sample
+from pathlib import Path
 
 
 class RandomHeader:
@@ -20,9 +21,12 @@ class RandomHeader:
         }
 
     def load_user_agents(self):
-        with open('utils/agents/user-agents.txt') as f:
+        # Use absolute path based on this file's location
+        agents_file = Path(__file__).parent / 'agents' / 'user-agents.txt'
+        with open(agents_file) as f:
             for line in f:
                 self.user_agents.append(line.strip())
 
     def random_ip(self) -> str:
         return '{}.{}.{}.{}'.format(*sample(range(0, 255), 4))
+

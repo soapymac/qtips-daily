@@ -8,10 +8,12 @@ from utils.region import print_regions, valid_region, region_search
 from utils.date import check_date, get_dates, parse_years, valid_years
 from utils.course import course_name, course_search, courses, print_courses, valid_course
 
-type ArgDict = (
+# FIXED: Removed the 'type' keyword to make it compatible with Python 3.11
+ArgDict = (
     dict[str, str | None | list[str] | list[date] | list[tuple[str, str | None]]]
     | dict[str, str | list[date]]
 )
+
 
 HELP_TEXT = (
     'Run:\n'
