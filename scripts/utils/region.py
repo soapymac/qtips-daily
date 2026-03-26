@@ -2,7 +2,9 @@ from orjson import loads
 
 
 def get_region(course_id: str) -> str:
-    courses = loads(open('../courses/_courses', 'r').read())
+    import os
+    courses_file = os.path.join(os.path.dirname(__file__), '..', '..', 'courses', '_courses')
+    courses = loads(open(courses_file, 'r').read())
     courses.pop('all')
 
     for region, course in courses.items():
@@ -23,7 +25,9 @@ def print_regions():
 
 
 def regions():
-    return loads(open('../courses/_regions', 'r').read())
+    import os
+    regions_file = os.path.join(os.path.dirname(__file__), '..', '..', 'courses', '_regions')
+    return loads(open(regions_file, 'r').read())
 
 
 def region_search(term: str):

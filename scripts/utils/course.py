@@ -3,7 +3,9 @@ from orjson import loads
 
 
 def courses(code: str = 'all') -> Generator[tuple[str, str]]:
-    courses = loads(open('../courses/_courses', 'r').read())
+    import os
+    courses_file = os.path.join(os.path.dirname(__file__), '..', '..', 'courses', '_courses')
+    courses = loads(open(courses_file, 'r').read())
 
     for id, course in courses[code].items():
         yield id, course

@@ -1,5 +1,6 @@
 import sys
 import os
+import re
 from datetime import datetime
 from pathlib import Path
 
@@ -42,7 +43,8 @@ def run_scraper(target_date):
              sys.exit(1)
              
     except Exception as e:
-        import re
+        import traceback
+        traceback.print_exc()
         print(f"Error checking schedule: {e}")
         sys.exit(1)
         
