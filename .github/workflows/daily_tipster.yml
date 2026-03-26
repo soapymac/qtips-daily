@@ -65,6 +65,7 @@ jobs:
           python scripts/racecards_runner.py $TARGET
 
       - name: Fetch Betfair Odds
+        continue-on-error: true
         env:
           BETFAIR_USERNAME: ${{ secrets.BETFAIR_USERNAME }}
           BETFAIR_PASSWORD: ${{ secrets.BETFAIR_PASSWORD }}
@@ -72,7 +73,10 @@ jobs:
         run: |
           TARGET="${{ steps.date.outputs.target }}"
           echo "💰 Fetching Betfair odds for $TARGET..."
-          python scripts/fetch_betfair_odds.py --date $TARGET || echo "⚠️ Betfair odds unavailable, continuing..."
+          echo "Username: $BETFAIR_USERNAME"
+          echo "App Key length: ${#BETFAIR_APP_KEY}"
+          echo "Password length: ${#BETFAIR_PASSWORD}"
+          python scripts/fetch_betfair_odds.py --date $TARGET
 
       - name: Run V12 Tipster
         if: github.event.inputs.run_tipster != 'No - just scrape racecards & odds'
@@ -88,11 +92,20 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           
+          # Add directories only if they exist
           for dir in racecards live_odds docs Grok_V12_Tips; do
             if [ -d "$dir" ]; then
               git add "$dir/" || true
             fi
           done
           
-          git diff --staged --quiet || (git commit -m "🏇 Tips for $TARGET" && git push)
-          echo "✅ Done! View tips at: https://soapymac.github.io/qtips-daily/docs/tips_mobile_$TARGET.html"
+          # Check if there are any changes to commit
+          if git diff --staged --quiet; then
+            echo "✅ No changes to commit"
+          else
+            # Pull latest changes first to avoid push conflicts
+            git pull --rebase origin main || true
+            git commit -m "🏇 Tips for $TARGET"
+            git push
+            echo "✅ Pushed! View tips at: https://soapymac.github.io/qtips-daily/docs/tips_mobile_$TARGET.html"
+          fi
