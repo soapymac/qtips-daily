@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+@theme {
+  --color-green-50: #eef5f0;
+  --color-green-100: #dcebe1;
+  --color-green-200: #b8d6c3;
+  --color-green-300: #8cbb9e;
+  --color-green-500: #4d9a67;
+  --color-green-600: #37804f;
+  --color-green-700: #2a6b45;
+  --color-green-800: #1f5236;
+  --color-green-900: #163d28;
+  --color-green-950: #0f2a1c;
+
+  --color-cream-50: #fbf9f4;
+  --color-cream-100: #f7f3ea;
+  --color-cream-200: #efe8d8;
+  --color-cream-300: #e3d9c2;
+
+  --color-earth-400: #c9a06c;
+  --color-earth-600: #a06f3a;
+  --color-earth-700: #8a5a2b;
+  --color-earth-800: #6b4520;
+
+  --color-ink: #1a1f1b;
+  --color-muted: #4b544e;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+  --shadow-soft: 0 1px 2px rgb(15 42 28 / 0.06), 0 8px 24px -12px rgb(15 42 28 / 0.25);
+  --shadow-lift: 0 2px 4px rgb(15 42 28 / 0.08), 0 16px 40px -16px rgb(15 42 28 / 0.35);
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-cream-100);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "kern", "liga", "ss01";
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-green-200);
+  color: var(--color-green-950);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-earth-400);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Subtle paper texture on cream backgrounds */
+.texture {
+  background-image:
+    radial-gradient(rgb(26 31 27 / 0.035) 1px, transparent 1px),
+    radial-gradient(rgb(26 31 27 / 0.025) 1px, transparent 1px);
+  background-size: 22px 22px, 34px 34px;
+  background-position: 0 0, 11px 17px;
+}
+
+/* Print styles for /services-sheet */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .print-hidden {
+    display: none !important;
+  }
+  a[href^="http"]::after {
+    content: "";
+  }
+}
